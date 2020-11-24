@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Linq;
 using System.Collections;
 
 namespace Pathfinding
@@ -18,39 +19,68 @@ namespace Pathfinding
     {
         /// <summary>The object that the AI should move to</summary>
         public Transform target;
+        public Transform enemeyTarget;
         IAstarAI ai;
 
         private float waitTime;
         public float startWaitTime;
 
         public Transform[] moveSpots;
-        public Transform battleSpot;
-        private RectTransform battleBox;
-        private int randomSpot;
+        public Transform enemySpot;
+        public Transform playerSpot;
+        public Transform petSpot;
 
+        private RectTransform battleBox;
+
+
+        private int randomSpot;
+        private State currentState;
+
+        private GameObject pet;
+        private PetAI petScript;
+
+        //Battle Variables
+        public bool enemyReady { get; set; }
+        public bool petReady { get; set; }
+
+        private enum State
+        {
+            Patrol = 1,
+            BattlePrepare = 2,
+            Combat = 3
+        }
 
         private void Start()
         {
 
             battleBox = GetComponentInChildren<RectTransform>();
+            pet = GameObject.FindGameObjectsWithTag("Pet").FirstOrDefault();
+            petScript = (PetAI)pet.GetComponent(typeof(PetAI));
 
             //Stop child objects from updating transforms
             foreach (Transform spot in moveSpots)
             {
                 spot.SetParent(null, true);
             }
+
             battleBox.SetParent(null, true);
-            battleSpot.SetParent(null, true);
+            enemySpot.SetParent(null, true);
+            petSpot.SetParent(null, true);
+            playerSpot.SetParent(null, true);
 
             waitTime = startWaitTime;
             randomSpot = Random.Range(0, moveSpots.Length);
             ai.destination = moveSpots[randomSpot].position;
 
-            
-            
-            battleSpot.transform.position = new Vector2(Random.Range(battleBox.rect.xMin, battleBox.rect.yMin),
-                                                        Random.Range(battleBox.rect.yMin, battleBox.rect.yMax));
+            currentState = State.Patrol;
 
+            petSpot.transform.position =
+                new Vector3(Random.Range(battleBox.anchoredPosition.x, battleBox.anchoredPosition.x + battleBox.rect.width),
+                            Random.Range(battleBox.anchoredPosition.y, battleBox.anchoredPosition.y + battleBox.rect.height), 0);
+
+            enemySpot.transform.position =
+                new Vector3(Random.Range(battleBox.anchoredPosition.x, battleBox.anchoredPosition.x + battleBox.rect.width),
+                            Random.Range(battleBox.anchoredPosition.y, battleBox.anchoredPosition.y + battleBox.rect.height), 0);
 
         }
 
@@ -73,18 +103,30 @@ namespace Pathfinding
         /// <summary>Updates the AI's destination every frame</summary>
         void Update()
         {
+            switch (currentState)
+            {
+                case State.Patrol:
+                    Patrol();
+                    break;
+                case State.BattlePrepare:
+                    BattlePrepare();
+                    break;
+                case State.Combat:
+                    Combat();
+                    break;
+                default:
+                    break;
+            }
 
+        }
+
+        private void Patrol()
+        {
             if (target != null && ai != null) ai.destination = moveSpots[randomSpot].position;
+
 
             if (Vector2.Distance(transform.position, moveSpots[randomSpot].position) < 0.2f)
             {
-
-                //move into battle state
-                battleSpot.transform.position = 
-                    new Vector3(Random.Range(battleBox.anchoredPosition.x, battleBox.anchoredPosition.x + battleBox.rect.width),
-                                Random.Range(battleBox.anchoredPosition.y, battleBox.anchoredPosition.y + battleBox.rect.height), 0);
-
-
 
                 if (waitTime <= 0)
                 {
@@ -97,6 +139,38 @@ namespace Pathfinding
                     waitTime -= Time.deltaTime;
                 }
             }
+        }
+
+        private void BattlePrepare()
+        {
+            
+            ai.destination = enemySpot.transform.position;
+
+            if (Vector2.Distance(transform.position, enemySpot.transform.position) < 0.2f)
+            {
+                enemyReady = true;
+                petScript.enemyReady = true;
+
+                if (petReady && enemyReady)
+                    currentState = State.Combat;
+            }
+        }
+
+        private void Combat()
+        {
+
+
+
+        }
+
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+
+            currentState = State.BattlePrepare;
+            petScript.SetEnemy(this.gameObject);
+            petScript.SetPetSpot(petSpot);
+
+
         }
     }
 }
