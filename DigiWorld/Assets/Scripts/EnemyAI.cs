@@ -22,6 +22,10 @@ namespace Pathfinding
         public Transform enemeyTarget;
         IAstarAI ai;
 
+        public Animator animator;
+        public Rigidbody2D rigidbody;
+        Vector2 direction;
+
         private float waitTime;
         public float startWaitTime;
 
@@ -52,7 +56,8 @@ namespace Pathfinding
 
         private void Start()
         {
-
+            //animator = GetComponentInChildren<Animator>();
+            //rigidbody = GetComponentInChildren<Rigidbody2D>();
             battleBox = GetComponentInChildren<RectTransform>();
             pet = GameObject.FindGameObjectsWithTag("Pet").FirstOrDefault();
             petScript = (PetAI)pet.GetComponent(typeof(PetAI));
@@ -71,6 +76,10 @@ namespace Pathfinding
             waitTime = startWaitTime;
             randomSpot = Random.Range(0, moveSpots.Length);
             ai.destination = moveSpots[randomSpot].position;
+
+            animator.SetFloat("Horizontal", ai.destination.normalized.x - this.transform.position.normalized.x);
+            animator.SetFloat("Vertical", ai.destination.normalized.y - this.transform.position.normalized.y);
+            animator.SetFloat("Speed", ai.destination.sqrMagnitude - this.transform.position.sqrMagnitude);
 
             currentState = State.Patrol;
 
@@ -103,6 +112,10 @@ namespace Pathfinding
         /// <summary>Updates the AI's destination every frame</summary>
         void Update()
         {
+            var test = ai.destination.sqrMagnitude - this.transform.position.sqrMagnitude;
+            animator.SetFloat("Speed", (test * test));
+
+
             switch (currentState)
             {
                 case State.Patrol:
@@ -118,6 +131,7 @@ namespace Pathfinding
                     break;
             }
 
+           
         }
 
         private void Patrol()
@@ -133,6 +147,9 @@ namespace Pathfinding
                     randomSpot = Random.Range(0, moveSpots.Length);
                     waitTime = startWaitTime;
                     ai.destination = moveSpots[randomSpot].position;
+                    animator.SetFloat("Horizontal", ai.destination.normalized.x - this.transform.position.normalized.x);
+                    animator.SetFloat("Vertical", ai.destination.normalized.y - this.transform.position.normalized.y);
+                    
                 }
                 else
                 {
