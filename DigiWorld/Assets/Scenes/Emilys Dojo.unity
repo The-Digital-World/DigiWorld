@@ -138,6 +138,10 @@ PrefabInstance:
       propertyPath: enemyTarget
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4187942951435907830, guid: 5122830355e72d44e845cbd5b51e10c4, type: 3}
+      propertyPath: attack
+      value: 34
+      objectReference: {fileID: 0}
     - target: {fileID: 7039469480075518536, guid: 5122830355e72d44e845cbd5b51e10c4, type: 3}
       propertyPath: radius
       value: 0.53
@@ -164,15 +168,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7039469480075518540, guid: 5122830355e72d44e845cbd5b51e10c4, type: 3}
       propertyPath: m_Offset.x
-      value: -0.15
+      value: -0.052786708
       objectReference: {fileID: 0}
     - target: {fileID: 7039469480075518540, guid: 5122830355e72d44e845cbd5b51e10c4, type: 3}
       propertyPath: m_Offset.y
-      value: -0.3
+      value: -0.12177539
       objectReference: {fileID: 0}
     - target: {fileID: 7039469480075518540, guid: 5122830355e72d44e845cbd5b51e10c4, type: 3}
       propertyPath: m_Radius
-      value: 0.58
+      value: 0.66101074
       objectReference: {fileID: 0}
     - target: {fileID: 7039469480075518541, guid: 5122830355e72d44e845cbd5b51e10c4, type: 3}
       propertyPath: target
@@ -5053,6 +5057,7 @@ GameObject:
   - component: {fileID: 294041701}
   - component: {fileID: 294041700}
   - component: {fileID: 294041699}
+  - component: {fileID: 294041702}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -5095,7 +5100,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 7.050004
+  orthographic size: 10.873949
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -5125,6 +5130,37 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &294041702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 294041698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
 --- !u!4 &439336218 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5152977173040130313, guid: 132c95306dbabeb4087e80b7a9c39684, type: 3}
@@ -6053,6 +6089,10 @@ PrefabInstance:
     - target: {fileID: 429703872535702526, guid: 132c95306dbabeb4087e80b7a9c39684, type: 3}
       propertyPath: startWaitTime
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 429703872535702526, guid: 132c95306dbabeb4087e80b7a9c39684, type: 3}
+      propertyPath: attack
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1114762885735107199, guid: 132c95306dbabeb4087e80b7a9c39684, type: 3}
       propertyPath: m_Icon

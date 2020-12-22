@@ -17,21 +17,29 @@ namespace Pathfinding
         private EnemyAI enemyScript;
         IAstarAI ai;
 
-        private State currentState;
+        public State currentState;
 
         //Battle variables
+
+        public float health;
+        public float attack;
+        public float evasion;
+        public float defence;
+
         public bool enemyReady { get; set; }
         public bool petReady { get; set; }
 
-        private enum State
+        public enum State
         {
             Following = 1,
             BattlePrepare = 2,
-            Combat = 3
+            Combat = 3,
+            ResetCombat = 4
         }
 
         private void Start()
         {
+            health = 100;
             target = GameObject.FindGameObjectWithTag("Player").transform;
             petAiPath = (AIPath)GetComponent(typeof(AIPath));            
             currentState = State.Following;
@@ -62,12 +70,26 @@ namespace Pathfinding
                     BattlePrepare();
                     break;
                 case State.Combat:
+                    Combat();
+                    break;
+                case State.ResetCombat:
+                    ResetCombat();
                     break;
                 default:
                     break;
             }
             
+            if(Input.GetKeyDown("space"))
+            {
+                Debug.Log(enemyScript.transform.position);
+            }
 
+            if (enemyScript != null)
+            {
+                if(enemyScript.health <= 0)
+                    currentState = State.Following;
+            }
+               
         }
 
 
@@ -80,7 +102,7 @@ namespace Pathfinding
         private void BattlePrepare()
         {
             ai.destination = petSpot.position;
-
+            //UpdateAnimations
 
             if (Vector2.Distance(transform.position, petSpot.position) < 0.2f)
             {
@@ -88,15 +110,62 @@ namespace Pathfinding
                 enemyScript.petReady = true;
 
                 if (petReady && enemyReady)
+                {
+                    //enemyScript.UpdatePetSpot();
+                    //ai.destination = enemyScript.transform.position;
                     currentState = State.Combat;
+                }
+                    
 
             }
 
         }
 
+        private void ResetCombat()
+        {
+            if (Vector2.Distance(transform.position, enemyScript.petSpot.transform.position) < 0.2f)
+            {
+                ai.destination = enemyScript.transform.position;
+                //UpdateAnimations
+                currentState = State.Combat;
+            }
+        }
+
+        private void Combat()
+        {
+
+            ai.destination = enemyScript.transform.position;
+            //UpdateAnimations
+
+            if (Vector2.Distance(transform.position, enemyScript.gameObject.transform.position) < 0.2f)
+            {
+                enemyScript.UpdatePetSpot();
+                ai.destination = petSpot.transform.position;
+                //UpdateAnimations
+                enemyScript.TakeDamage(attack);
+                currentState = State.ResetCombat;
+            }
+        }
+
+        public void TakeDamage(float attackAmount)
+        {
+            //increase logic here
+            health -= attackAmount;
+        }
+
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            
+            switch (currentState)
+            {
+                case State.Following:
+                    break;
+                case State.BattlePrepare:
+                    break;
+                case State.Combat:
+                    break;
+                default:
+                    break;
+            }
         }
 
         public void SetEnemy(GameObject enemy)

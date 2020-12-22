@@ -23,10 +23,10 @@ namespace Pathfinding
         IAstarAI ai;
 
         public Animator animator;
-        public Rigidbody2D rigidbody;
         Vector2 direction;
 
         private float waitTime;
+        private float speed;
         public float startWaitTime;
 
         public Transform[] moveSpots;
@@ -38,20 +38,25 @@ namespace Pathfinding
 
 
         private int randomSpot;
-        private State currentState;
+        public State currentState; //move back to private
 
         private GameObject pet;
         private PetAI petScript;
 
         //Battle Variables
+        public float health;
+        public float attack;
+        public float evasion;
+        public float defence;
         public bool enemyReady { get; set; }
         public bool petReady { get; set; }
 
-        private enum State
+        public enum State
         {
             Patrol = 1,
             BattlePrepare = 2,
-            Combat = 3
+            Combat = 3,
+            ResetCombat = 4
         }
 
         private void Start()
@@ -77,11 +82,12 @@ namespace Pathfinding
             randomSpot = Random.Range(0, moveSpots.Length);
             ai.destination = moveSpots[randomSpot].position;
 
-            animator.SetFloat("Horizontal", ai.destination.normalized.x - this.transform.position.normalized.x);
-            animator.SetFloat("Vertical", ai.destination.normalized.y - this.transform.position.normalized.y);
+            //Animation
+            UpdateAnimations();
             animator.SetFloat("Speed", ai.destination.sqrMagnitude - this.transform.position.sqrMagnitude);
 
             currentState = State.Patrol;
+            health = 100;
 
             petSpot.transform.position =
                 new Vector3(Random.Range(battleBox.anchoredPosition.x, battleBox.anchoredPosition.x + battleBox.rect.width),
@@ -112,9 +118,8 @@ namespace Pathfinding
         /// <summary>Updates the AI's destination every frame</summary>
         void Update()
         {
-            var test = ai.destination.sqrMagnitude - this.transform.position.sqrMagnitude;
-            animator.SetFloat("Speed", (test * test));
-
+            speed = ai.destination.sqrMagnitude - this.transform.position.sqrMagnitude;
+            animator.SetFloat("Speed", (speed * speed));
 
             switch (currentState)
             {
@@ -127,11 +132,28 @@ namespace Pathfinding
                 case State.Combat:
                     Combat();
                     break;
+                case State.ResetCombat:
+                    ResetCombat();
+                    break;
                 default:
                     break;
             }
 
-           
+            if (health <= 0)
+                Destroy(this.gameObject);
+        }
+
+        private void UpdateAnimations()
+        {
+            animator.SetFloat("Horizontal", ai.destination.normalized.x - this.transform.position.normalized.x);
+            animator.SetFloat("Vertical", ai.destination.normalized.y - this.transform.position.normalized.y);
+        }
+
+        public void UpdatePetSpot()
+        {
+            petSpot.transform.position =
+                new Vector3(Random.Range(battleBox.anchoredPosition.x, battleBox.anchoredPosition.x + battleBox.rect.width),
+                            Random.Range(battleBox.anchoredPosition.y, battleBox.anchoredPosition.y + battleBox.rect.height), 0);
         }
 
         private void Patrol()
@@ -147,8 +169,7 @@ namespace Pathfinding
                     randomSpot = Random.Range(0, moveSpots.Length);
                     waitTime = startWaitTime;
                     ai.destination = moveSpots[randomSpot].position;
-                    animator.SetFloat("Horizontal", ai.destination.normalized.x - this.transform.position.normalized.x);
-                    animator.SetFloat("Vertical", ai.destination.normalized.y - this.transform.position.normalized.y);
+                    UpdateAnimations();
                     
                 }
                 else
@@ -161,31 +182,83 @@ namespace Pathfinding
         private void BattlePrepare()
         {
             
+            
             ai.destination = enemySpot.transform.position;
+            UpdateAnimations();
 
             if (Vector2.Distance(transform.position, enemySpot.transform.position) < 0.2f)
             {
+                
                 enemyReady = true;
                 petScript.enemyReady = true;
 
                 if (petReady && enemyReady)
+                {
+                    //ai.destination = petScript.gameObject.transform.position;
+                    //UpdateAnimations();
                     currentState = State.Combat;
+                    
+                }
+                    
             }
         }
 
         private void Combat()
         {
 
+            ai.destination = petScript.gameObject.transform.position;
+            UpdateAnimations();
+
+            if (Vector2.Distance(transform.position, petScript.gameObject.transform.position) < 0.2f)
+            {
+
+                enemySpot.transform.position =
+                     new Vector3(Random.Range(battleBox.anchoredPosition.x, battleBox.anchoredPosition.x + battleBox.rect.width),
+                            Random.Range(battleBox.anchoredPosition.y, battleBox.anchoredPosition.y + battleBox.rect.height), 0);
+
+                ai.destination = enemySpot.transform.position;
+                UpdateAnimations();
+                petScript.TakeDamage(attack);
+                currentState = State.ResetCombat;
+            }
 
 
+        }
+
+        public void TakeDamage(float attackAmount)
+        {
+            health -= attackAmount;
+        }
+
+        private void ResetCombat()
+        {
+
+            if (Vector2.Distance(transform.position, enemySpot.transform.position) < 0.2f)
+            {
+                ai.destination = petScript.transform.position;
+                UpdateAnimations();
+                currentState = State.Combat;
+            }
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
 
-            currentState = State.BattlePrepare;
-            petScript.SetEnemy(this.gameObject);
-            petScript.SetPetSpot(petSpot);
+            switch (currentState)
+            {
+                case State.Patrol:
+                    currentState = State.BattlePrepare;
+                    petScript.SetEnemy(this.gameObject);
+                    petScript.SetPetSpot(petSpot);
+                    break;
+                case State.BattlePrepare:
+                    break;
+                case State.Combat:
+                    break;
+                default:
+                    break;
+            }         
+
 
 
         }
